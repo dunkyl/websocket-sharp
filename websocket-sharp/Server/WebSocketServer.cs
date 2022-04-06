@@ -124,7 +124,7 @@ namespace WebSocketSharp.Server
     /// to listen.
     /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// <paramref name="port"/> is less than 1 or greater than 65535.
+    /// <paramref name="port"/> is less than 0 or greater than 65535.
     /// </exception>
     public WebSocketServer (int port)
       : this (port, port == 443)
@@ -216,19 +216,10 @@ namespace WebSocketSharp.Server
     /// secure connections; otherwise, <c>false</c>.
     /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// <paramref name="port"/> is less than 1 or greater than 65535.
+    /// <paramref name="port"/> is less than 0 or greater than 65535.
     /// </exception>
-    public WebSocketServer (int port, bool secure)
+    public WebSocketServer (int port, bool secure) : this (System.Net.IPAddress.Any, port, secure)
     {
-      if (!port.IsPortNumber ()) {
-        var msg = "It is less than 1 or greater than 65535.";
-
-        throw new ArgumentOutOfRangeException ("port", msg);
-      }
-
-      var addr = System.Net.IPAddress.Any;
-
-      init (addr.ToString (), addr, port, secure);
     }
 
     /// <summary>
@@ -259,7 +250,7 @@ namespace WebSocketSharp.Server
     /// <paramref name="address"/> is not a local IP address.
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// <paramref name="port"/> is less than 1 or greater than 65535.
+    /// <paramref name="port"/> is less than 0 or greater than 65535.
     /// </exception>
     public WebSocketServer (System.Net.IPAddress address, int port)
       : this (address, port, port == 443)
@@ -293,7 +284,7 @@ namespace WebSocketSharp.Server
     /// <paramref name="address"/> is not a local IP address.
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// <paramref name="port"/> is less than 1 or greater than 65535.
+    /// <paramref name="port"/> is less than 0 or greater than 65535.
     /// </exception>
     public WebSocketServer (System.Net.IPAddress address, int port, bool secure)
     {
@@ -307,7 +298,7 @@ namespace WebSocketSharp.Server
       }
 
       if (!port.IsPortNumber ()) {
-        var msg = "It is less than 1 or greater than 65535.";
+        var msg = "It is less than 0 or greater than 65535.";
 
         throw new ArgumentOutOfRangeException ("port", msg);
       }
@@ -743,12 +734,12 @@ namespace WebSocketSharp.Server
     {
       _hostname = hostname;
       _address = address;
-      _port = port;
       _secure = secure;
 
       _authSchemes = AuthenticationSchemes.Anonymous;
       _dnsStyle = Uri.CheckHostName (hostname) == UriHostNameType.Dns;
       _listener = new TcpListener (address, port);
+      _port = ((System.Net.IPEndPoint)_listener.LocalEndpoint).Port;
       _log = new Logger ();
       _services = new WebSocketServiceManager (_log);
       _sync = new object ();
